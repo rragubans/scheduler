@@ -1,57 +1,50 @@
-<div class="row row-buffer project-table-scrollable">
-	<iframe id="myIFrm" ng-src="{{currentProjectUrl}}" style="visibility:hidden">
-	</iframe>
-	<div class="container">
-		<div class="panel panel-default page-panel">
+                        <table ng-table="tableParams" show-filter="false"
+							class="table-condensed table-striped data-table project-table">
 
-			<div class="panel-heading">
-				<span>Projects</span>
-				<span class="pull-right" my-current-time="format"></span>
-			</div>
-			<div class="panel-body">
-				<div loading="loading" model="loading"></div>
-				<div ng-show="!loading">
-					<div class="clearfix">
-						<img src="/img/waiting.gif" alt="waiting"
-							data-ng-show="submitting" />&#160;&#160;
+							<tr ng-repeat="project in getProjectData()" >
+								<td class="oranization-name-col"
+									data-title="'Name'"
+									sortable="'name'">
+									<span>{{ project.name }}
+									</span>
+								
+								<td class="oranization-name-col"
+									data-title="'Priority'"
+									sortable="'priorityOrder'">
+									<span 
+										>{{ project.priorityOrder }}	
+									</span>
+								</td>
+								
+								<td class="organization-name-col" data-title="'Start-Date'">
+									{{ project.startDate | date:'MM/dd/yyyy' }}
+								</td>
+								
+								<td class="oranization-name-col" data-title="'StakeHolder'"
+									sortable="'stakeHolderName'"> 
+									{{ project.stakeholder}}
+								</td>
+								
+								<td class="oranization-name-col" data-title="'Organization'"
+									sortable="'organization'">
+									{{ project.organizationName }}
+								</td>
+								
+								<td class="oranization-name-col"
+									data-title="'Overall RAG'"
+									sortable="'overallRagRating'">
+									<span>{{ project.overallRagRating }}	
+									</span>
+								</td>
 
-                        <button type="button" class="pull-right btn btn-default"
-                                data-dismiss="modal" tooltip-placement="top"
-                                tooltip="Reload reqs and tasks from fogbugz" data-ng-click="reloadRequirementsAndTasks();">
-                            <span class="glyphicon glyphicon-download"></span>
-                        </button>
-
-						<button type="button" class="pull-right btn btn-default"
-							data-dismiss="modal" tooltip-placement="top"
-							tooltip="Expand project view" data-ng-click="showFullScreen();">
-							<span class="glyphicon glyphicon-expand"></span>
-						</button>
-
-						<button type="button" class="pull-right btn btn-default"
-							data-dismiss="modal" tooltip-placement="top"
-							tooltip="Export to Excel" data-ng-click="exportToExcel();">
-							<span class="glyphicon glyphicon-export"></span>
-						</button>
+								<td><i ng-click="deleteProject(project);"
+									class="glyphicon glyphicon-trash organization-icon" />
+								</td>
 							
-						<button type="button" class="pull-right btn btn-default"
-							data-dismiss="modal" tooltip-placement="top"
-							tooltip="New Project" data-ng-click="openNewProjectDlg();">
-							<span class="glyphicon glyphicon-plus"></span>
-						</button>
-						<button type="button" type="file" class="pull-left"
-							ng-file-select="onFileSelect($files)">Upload File</button>
-					</div>
+								<td>
+									<i  class="glyphicon glyphicon-pencil organization-icon"
+										ng-click="updateProject(project);"/>
 
-					<div class="data-table-project-scrollable"
-						 ng-show="isSummary()" ng-include="'partials/project/_projectbase.html'">
-					</div>
-
-					<div class="data-table-project-scrollable"
-						 ng-show="isFullScreen()" ng-include="'partials/project/_project_extended.html'">
-					</div>
-					
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
+								</td>
+							</tr>
+						</table>
