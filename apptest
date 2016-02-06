@@ -1,296 +1,57 @@
-/* 
- * Copyright 2014 Instinet.
- *
- * Licensed under the Instinet corp, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.instinet.com
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+<div class="row row-buffer project-table-scrollable">
+	<iframe id="myIFrm" ng-src="{{currentProjectUrl}}" style="visibility:hidden">
+	</iframe>
+	<div class="container">
+		<div class="panel panel-default page-panel">
 
-'use strict';
+			<div class="panel-heading">
+				<span>Projects</span>
+				<span class="pull-right" my-current-time="format"></span>
+			</div>
+			<div class="panel-body">
+				<div loading="loading" model="loading"></div>
+				<div ng-show="!loading">
+					<div class="clearfix">
+						<img src="/img/waiting.gif" alt="waiting"
+							data-ng-show="submitting" />&#160;&#160;
 
-/* App Module */
+                        <button type="button" class="pull-right btn btn-default"
+                                data-dismiss="modal" tooltip-placement="top"
+                                tooltip="Reload reqs and tasks from fogbugz" data-ng-click="reloadRequirementsAndTasks();">
+                            <span class="glyphicon glyphicon-download"></span>
+                        </button>
 
-Array.prototype.randomize = function() {
-    var i = this.length, j, temp;
-    if(i===0)
-	return this;
-    while (--i) {
-	j = Math.floor(Math.random() * (i - 1));
-	temp = this[i];
-	this[i] = this[j];
-	this[j] = temp;
-    }
-    return this;
-};
+						<button type="button" class="pull-right btn btn-default"
+							data-dismiss="modal" tooltip-placement="top"
+							tooltip="Expand project view" data-ng-click="showFullScreen();">
+							<span class="glyphicon glyphicon-expand"></span>
+						</button>
 
-var biking2 = angular
-	.module('biking2', [
-	    'ngRoute', 
-	    'highcharts-ng',
-	    'angularFileUpload', 
-	    'ui.bootstrap',
-	    'ngAnimate',
-	    'track-map-ng',
-	    'chart.js',
-	    'gantt',
-	    'gantt.sortable',
-	    'gantt.labels',
-	    'gantt.movable',
-        'gantt.drawtask',
-        'gantt.tooltips',
-        'gantt.bounds',
-        'gantt.progress',
-        'gantt.table',
-        'gantt.tree',
-        'gantt.groups',
-        'gantt.overlap',
-   	    'ang-drag-drop',
-   	    'mgcrea.ngStrap',
-	    'ngTable'
-	])
-	
-	.directive('ngActiveTab', function($location) {
-	    return {
-		link: function postLink(scope, element, attrs) {
-		    scope.$on("$routeChangeSuccess", function(event, current, previous) {
-			// this var grabs the tab-level off the attribute, or defaults to 1
-			var pathLevel = attrs.activeTab || 1,
-				// this var finds what the path is at the level specified
-				pathToCheck = $location.path().split('/')[pathLevel],
-				// this var finds grabs the same level of the href attribute
-				tabLink = attrs.href.split('/')[pathLevel];
+						<button type="button" class="pull-right btn btn-default"
+							data-dismiss="modal" tooltip-placement="top"
+							tooltip="Export to Excel" data-ng-click="exportToExcel();">
+							<span class="glyphicon glyphicon-export"></span>
+						</button>
+							
+						<button type="button" class="pull-right btn btn-default"
+							data-dismiss="modal" tooltip-placement="top"
+							tooltip="New Project" data-ng-click="openNewProjectDlg();">
+							<span class="glyphicon glyphicon-plus"></span>
+						</button>
+						<button type="button" type="file" class="pull-left"
+							ng-file-select="onFileSelect($files)">Upload File</button>
+					</div>
 
-			if (pathToCheck === tabLink) {
-			    element.parent().addClass("active");
-			} else {
-			    element.parent().removeClass("active");
-			}
-		    });
-		}
-	    };
-	})
-	.config(
-		function($routeProvider, $locationProvider) {
-		    $locationProvider.html5Mode(true);
+					<div class="data-table-project-scrollable"
+						 ng-show="isSummary()" ng-include="'partials/project/_projectbase.html'">
+					</div>
 
-		    $routeProvider.
-			    when('/projects', {
-				templateUrl: '/partials/project/_project.html',
-				controller: 'ProjectCtrl'
-			    }).
-			    when('/addnewproject', {
-			    	templateUrl: '/partials/project/_add_new_short_project.html',
-			    	controller: 'AddNewProjectCtrl'
-			    }).
-			    when('/updateproject/:param1/:param2', {
-                   	templateUrl: '/partials/project/_projectupdate.html',
-                   	controller: 'UpdateProjectCtrl'
-                }).
-			    when('/addnewresource', {
-			    	templateUrl: '/partials/resource/_add_new_resource.html',
-			    	controller: 'AddNewResourceCtrl'
-			    }).
-   			    when('/addnewstakeholder', {
-        			templateUrl: '/partials/stakeholder/_add_new_stakeholder.html',
-                	controller: 'AddNewStakeholderCtrl'
-             	}).
-			    when('/addnewstakeholderallocation', {
-        			templateUrl: '/partials/stakeholder/_add_new_stakeholder_allocation.html',
-                	controller: 'AddNewStakeholderAllocationCtrl'
-                }).
-			    when('/organizations', {
-					templateUrl: '/partials/_organization.html',
-					controller: 'OrganizationCtrl'
-			    }).
-			    when('/groups', {
-					templateUrl: '/partials/group/_group.html',
-					controller: 'GroupCtrl'
-			    }).
-			    when('/groupsToRelationship', {
-					templateUrl: '/partials/_group_resources_stakeholder_allocation.html',
-					controller: 'GroupResourcesAllocationCtrl'
-			    }).
-			    when('/resources', {
-					templateUrl: '/partials/resource/_resource.html',
-					controller: 'ResourceCtrl'
-			    }).    
-			    when('/resourceholidays', {
-					templateUrl: '/partials/_resourceholidays.html',
-					controller: 'ResourceHolidaysCtrl'
-			    }).    
-			    
-			    when('/resourcetogroupallocation', {
-					templateUrl: '/partials/_resourcetogroupallocations.html',
-					controller: 'ResourceToGroupAllocationCtrl'
-			    }).
-			    
-			    when('/requirements', {
-					templateUrl: '/partials/requirement/_requirement.html',
-					controller: 'RequirementCtrl'
-			    }).
-			    when('/tasks', {
-					templateUrl: '/partials/_task.html',
-					controller: 'TaskCtrl'
-			    }).
-			    when('/taskdependencies', {
-					templateUrl: '/partials/_task_to_task.html',
-					controller: 'TaskToTaskCtrl'
-			    }).
-			    when('/scheduledtasks', {
-					templateUrl: '/partials/_scheduler_task.html',
-					controller: 'ScheduledTaskCtrl'
-			    }).
-			    when('/scheduledtimeline', {
-					templateUrl: '/partials/_schedule_timeline.html',
-					controller: 'ScheduledTimeLineCtrl'
-			    }).
-			    when('/projecttimeline', {
-					templateUrl: '/partials/_project_timeline.html',
-					controller: 'ProjectTimeLineCtrl'
-			    }).
-			    when('/scheduledreport', {
-					templateUrl: '/partials/_scheduler_report_task.html',
-					controller: 'ScheduledReportTaskCtrl'
-			    }).
-			    when('/projects', {
-			    	templateUrl: '/partials/project/_project.html',
-					controller: 'ProjectCtrl'
-			    }).
-			    when('/projectreport', {
-			    	templateUrl: '/partials/_project_requirement_report.html',
-					controller: 'ProjectRequirementReportCtrl'
-			    }).
-			    when('/grouptaskreport', {
-			    	templateUrl: '/partials/_group_task_report.html',
-					controller: 'GroupTaskCtrl'
-			    }).
-                when('/stakeholdertaskreport', {
-                    templateUrl: '/partials/stakeholder/_stakeholder_scheduled_work.html',
-                    controller: 'StakeholderTaskCtrl'
-                }).
-			    when('/groupavailability', {
-			    	templateUrl: '/partials/_group_availability_report.html',
-					controller: 'GroupAvailabilityCtrl'
-			    }).
-			    when('/groupavailabilitymatrix', {
-			    	templateUrl: '/partials/group/_group_availability_matrix_report.html',
-					controller: 'GroupAvailabilityMatrixCtrl'
-			    }).
-			    when('/stakeholders', {
-					templateUrl: '/partials/stakeholder/_stakeholder.html',
-					controller: 'StakeholderCtrl'
-			    }).
-			    when('/stakeholderAllocations', {
-					templateUrl: '/partials/stakeholder/_stakeholderallocation.html',
-					controller: 'StakeholderAllocationCtrl'
-			    }).
-			    when('/stakeholderAllocationMatrix', {
-					templateUrl: '/partials/stakeholder/_stakeholderallocationsheet.html',
-					controller: 'StakeholderAllocationMatrixCtrl'
-			    }).
-			    when('/stakeholdergroupreport', {
-					templateUrl: '/partials/stakeholder/_stakeholdergroupavailability.html',
-					controller: 'StakeholderGroupAllocationCtrl'
-			    }).
-			    when('/groupheatmap', {
-					templateUrl: '/partials/group/_heatmap_daterange_group.html',
-					controller: 'HeatMapCtrl'
-			    }).
-			    when('/schedulerheatmap', {
-					templateUrl: '/partials/report/_heatmap_schedule_calendar.html',
-					controller: 'SchedulerHeatMapCtrl'
-			    }).
-			    when('/cleandb', {
-					templateUrl: '/partials/_cleandb.html',
-					controller: 'DataStoreCleanerCtrl'
-			    }).
-			    when('/cleantask', {
-					templateUrl: '/partials/_cleandb.html',
-					controller: 'DataStoreTaskCleanerCtrl'
-			    }).
-			    when('/cleanrequirement', {
-					templateUrl: '/partials/_cleandb.html',
-					controller: 'DataStoreRequirementCleanerCtrl'
-			    }).
-			    when('/cleanstakeholder', {
-					templateUrl: '/partials/_cleandb.html',
-					controller: 'DataStoreStakeholderCleanerCtrl'
-			    }).
-			    when('/cleanstakeholderallocation', {
-					templateUrl: '/partials/_cleandb.html',
-					controller: 'DataStoreStakeholderAllocationCleanerCtrl'
-			    }).
-			    when('/cleanproject', {
-					templateUrl: '/partials/_cleandb.html',
-					controller: 'DataStoreProjectCleanerCtrl'
-			    }).
-			    when('/cleanerror', {
-					templateUrl: '/partials/_cleandb.html',
-					controller: 'DataStoreErrorCleanerCtrl'
-			    }).
-			    when('/errors', {
-					templateUrl: '/partials/_error.html',
-					controller: 'ErrorCtrl'
-			    }).
-			    when('/login', {
-					templateUrl: '/partials/login/_login.html',
-					controller: 'LoginCtrl'
-			    }).
-			    when('/', {
-                	templateUrl: '/partials/project/_project_treeview.html',
-                	controller: 'ProjectTreeViewCtrl'
-                }).
-			    when('/projectstateview1/:param1', {
-                	templateUrl: '/partials/project/_project_state_chart_view.html',
-                	controller: 'ProjectStateTreeViewCtrl'
-                }).
-                when('/projectstateview/', {
-                   	templateUrl: '/partials/project/_project_state_chart_view.html',
-                    controller: 'ProjectStateTreeViewCtrl'
-                }).
-               /* when('/tickview', {
-          	        templateUrl: '/partials/chart/_scheduler_request.html',
-                    controller: 'SchedulerRequestCtrl'
-                }).*/
-                when('/projectfeaturecost', {
-           	        templateUrl: '/partials/project/_project_feature_cost.html',
-                    controller: 'ProjectFeatureCostCtrl'
-                }).
-                when('/tableau', {
-                    templateUrl: '/partials/project/_project_tableau_chart.html',
-                    controller: 'LineCtrl'
-                }).
-			    when('/about', {
-				templateUrl: '/partials/_about.html',
-				controller: 'AboutCtrl'
-			    }).
-			    otherwise({
-				redirectTo: '/'
-			    });
-		}
-	)
-	
-	.filter('bytes', function() {
-	    return function(bytes, precision) {
-		if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
-		if (bytes === 0) return '0 bytes';
-		if (typeof precision === 'undefined') precision = 1;
-		var units = [' bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'],
-			number = Math.floor(Math.log(bytes) / Math.log(1024));
-		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  '' + units[number];
-	    };
-	})
-	.run(function($rootScope, $location) {
-	    $rootScope.currentYear = new Date().getFullYear();
-	    if ($location.path() == "/projectstateview") {
-           $rootScope.hideIframeBody = true;
-	    }
-	});
+					<div class="data-table-project-scrollable"
+						 ng-show="isFullScreen()" ng-include="'partials/project/_project_extended.html'">
+					</div>
+					
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
